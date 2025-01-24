@@ -3,72 +3,85 @@
 Created on Thu Jan  2 09:55:52 2025
 
 @author: Dell
+
+Problem Statement:
+This dataset contains information about the Waist circumference and the AT (some attribute) for a set of individuals. 
+The goal of this analysis is to predict AT (dependent variable) based on Waist (independent variable). 
+We aim to build multiple linear regression models to find the best fit for predicting AT based on Waist. 
+Various transformations of the data, including log transformations, are used to explore different relationships.
+The models are evaluated based on metrics such as R-squared and Root Mean Squared Error (RMSE).
+
+Business Goals:
+1. To develop an accurate predictive model for AT (dependent variable) using Waist (independent variable).
+2. To assess which model provides the best predictive power for AT.
+3. To determine the feasibility of using transformations (logarithmic and polynomial) to improve model accuracy.
+4. To assess the performance of the final selected model in predicting both the training and test data.
+
+The analysis can help understand how Waist circumference influences the AT attribute, which could have applications 
+in health and fitness, specifically in understanding body measurements and their correlation with other physical attributes.
 """
 
 import pandas as pd
 import numpy as np
 import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Load the dataset
 wcat = pd.read_csv(r"E:\Honars(DS)\Data Science\17-Linear Regression\wc-at.csv")
 
-#EDA
-wcat.info()
-wcat.describe()
+# EDA (Exploratory Data Analysis)
+wcat.info()  # Information about the dataset
+wcat.describe()  # Summary statistics for the dataset
 
-#Average waist is 91.90 and min is 63.50 and max is 121
-
-import matplotlib.pyplot as plt
-plt.bar(height=wcat.AT,x=np.arange(1,110,1))
+# Visualizing Waist and AT data
+plt.bar(height=wcat.AT, x=np.arange(1, 110, 1))
 sns.displot(wcat.AT)
-#Data is normal but right shewed
+# Data is normal but right skewed
 
 plt.boxplot(wcat.AT)
-#No outliers but right skewed
+# No outliers but right skewed
 
-plt.bar(height=wcat.Waist,x=np.arange(1,110,1))
+plt.bar(height=wcat.Waist, x=np.arange(1, 110, 1))
 sns.displot(wcat.Waist)
-#Data is normal bimodel
+# Data is normal bimodal
 plt.boxplot(wcat.Waist)
-#No outliers but right skewed
+# No outliers but right skewed
 
 ######################################
-#bivariant analysis
-plt.scatter(x=wcat.Waist,y=wcat.AT)
-#Data is lineary scattered,direction positive,strenght:poor
-#Now let us check the correlation coefficent
+# Bivariate analysis: Waist vs AT
+plt.scatter(x=wcat.Waist, y=wcat.AT)
+# Data is linearly scattered, direction positive, strength: poor
+# Now, let us check the correlation coefficient
+np.corrcoef(wcat.Waist, wcat.AT)
 
-np.corrcoef(wcat.Waist,wcat.AT)
-
-cov_output=np.cov(wcat.Waist,wcat.AT)[0,1]
+cov_output = np.cov(wcat.Waist, wcat.AT)[0, 1]
 cov_output
-#635.9100064135235 is postive means correlation will be positive
+# Positive correlation, means correlation will be positive
 
 ###############################################
 
-'''Let us check fesability of model model'''
+'''Let us check feasibility of model'''
 
 import statsmodels.formula.api as smf
 
-#First sample linear model
-model=smf.ols('AT~Waist',data=wcat).fit()
-#Y is AT and X is waist
+# First simple linear model
+model = smf.ols('AT ~ Waist', data=wcat).fit()
+# Y is AT and X is Waist
 model.summary()
-#R-sqaured=0.67<0.85 there is scope of improvement
-#p=00<0.05 hence acceptable
-#bita-0=-215.98
-#bita-1=3.45
+# R-squared=0.67 < 0.85, there is scope for improvement
+# p-value=0.000 < 0.05, hence acceptable
+# Coefficients: Intercept=-215.98, Slope=3.45
 
-pred1=model.predict(pd.DataFrame(wcat.Waist))
+pred1 = model.predict(pd.DataFrame(wcat.Waist))
 pred1
 ######################
 
-#Regression Line
-plt.scatter(wcat.Waist,wcat.AT)
-plt.plot(wcat.Waist,pred1,'r')
-plt.legend(['Predicted line','Observed Data'])
+# Regression Line
+plt.scatter(wcat.Waist, wcat.AT)
+plt.plot(wcat.Waist, pred1, 'r')
+plt.legend(['Predicted line', 'Observed Data'])
 plt.show()
 ##############################
-
-#Error Calculations
 
 # Error Calculations
 res1 = wcat.AT - pred1  # Residuals
@@ -79,147 +92,101 @@ print("Mean Squared Error:", mse1)
 print("Root Mean Squared Error:", rmse1)
 
 ################################################
-#Let us try for another model
+# Let us try another model with log transformation
 
-plt.scatter(x=np.log(wcat.Waist),y=wcat.AT)
-#Data is linerly scatter ,direction positive,strenght:poor
-#Now let us check the correlation
-np.corrcoef(np.log(wcat.Waist),wcat.AT)
+plt.scatter(x=np.log(wcat.Waist), y=wcat.AT)
+# Data is linearly scattered, direction positive, strength: poor
+# Now let us check the correlation
+np.corrcoef(np.log(wcat.Waist), wcat.AT)
 
-model2= smf.ols('AT~np.log(Waist)',data=wcat).fit()
+model2 = smf.ols('AT ~ np.log(Waist)', data=wcat).fit()
 model2.summary()
 
-pred2=model2.predict(pd.DataFrame(wcat.Waist))
+pred2 = model2.predict(pd.DataFrame(wcat.Waist))
 pred2
 ############################
-#Regression Line
+# Regression Line
 
-plt.scatter(np.log(wcat.Waist),wcat.AT)
-plt.plot(np.log(wcat.Waist),pred2,'r')
-plt.legend(['Predicted line','Observed Data2'])
+plt.scatter(np.log(wcat.Waist), wcat.AT)
+plt.plot(np.log(wcat.Waist), pred2, 'r')
+plt.legend(['Predicted line', 'Observed Data2'])
 plt.show()
 
 #########################
-#Error Calculation
+# Error Calculation
 
-res2=wcat.AT-pred2
+res2 = wcat.AT - pred2
 np.mean(res1)
-res_sqr2=res2*res2
+res_sqr2 = res2 * res2
 
-mse2=np.mean(res_sqr2)
-rmse2=np.sqrt(mse2)
+mse2 = np.mean(res_sqr2)
+rmse2 = np.sqrt(mse2)
 rmse2
 
 #########################################
 
-#Let us try for another model
+# Let us try another model
 
-plt.scatter(x=np.log(wcat.Waist),y=wcat.AT)
-#Data is linerly scatter ,direction positive,strenght:poor
-#Now let us check the correlation
-np.corrcoef(np.log(wcat.Waist),wcat.AT)
+# Data is linearly scattered, direction positive, strength: poor
+# Now let us check the correlation
+np.corrcoef(wcat.Waist, np.log(wcat.AT))
 
-model2= smf.ols('AT~np.log(Waist)',data=wcat).fit()
-model2.summary()
-
-pred2=model2.predict(pd.DataFrame(wcat.Waist))
-pred2
-############################
-#Regression Line
-
-plt.scatter(np.log(wcat.Waist),wcat.AT)
-plt.plot(np.log(wcat.Waist),pred2,'r')
-plt.legend(['Predicted line','Observed Data2'])
-plt.show()
-
-#########################
-#Error Calculation
-
-res2=wcat.AT-pred2
-np.mean(res1)
-res_sqr2=res2*res2
-
-mse2=np.mean(res_sqr2)
-rmse2=np.sqrt(mse2)
-rmse2
-
-#########################################
-
-
-#Let us make logY and X as is
-plt.scatter(x=(wcat.Waist),y=np.log(wcat.AT))
-
-#Data is linearly scatter direction is postive,negative,strenght :poor
-
-
-#Now let us check for coffient correlation
-np.corrcoef(wcat.Waist,np.log(wcat.AT))
-
-model3=smf.ols('np.log(AT)~Waist',data=wcat).fit()
+model3 = smf.ols('np.log(AT) ~ Waist', data=wcat).fit()
 
 model3.summary()
 
-pred3=model3.predict(pd.DataFrame(wcat.Waist))
-pred3_at=np.exp(pred3)
+pred3 = model3.predict(pd.DataFrame(wcat.Waist))
+pred3_at = np.exp(pred3)
 pred3_at
 ########################
 
-#Regression line
-plt.scatter(wcat.Waist,np.log(wcat.AT))
-plt.plot(wcat.Waist,pred3,'r')
-plt.legend(['Predicted Line','Observed data_model3'])
+# Regression line
+plt.scatter(wcat.Waist, np.log(wcat.AT))
+plt.plot(wcat.Waist, pred3, 'r')
+plt.legend(['Predicted Line', 'Observed data_model3'])
 plt.show()
 ##############################
 
-#Error Calculation
-res3=wcat.AT-pred3_at
+# Error Calculation
+res3 = wcat.AT - pred3_at
 
-res_sqr3=res3*res3
-mse3=np.mean(res_sqr3)
-rmse3=np.sqrt(mse3)
+res_sqr3 = res3 * res3
+mse3 = np.mean(res_sqr3)
+rmse3 = np.sqrt(mse3)
 rmse3
-#38.52900175807143 there is chnge in r
-
 
 ###############################
-#Try another model
-
-#Now let us make Y=log(AT) and X=Waist,X*X=Waist.Waist
-
-#polynomial model
-#Here r can not be calculated
+# Try another model with polynomial terms
 
 model4 = smf.ols('np.log(AT) ~ Waist + I(Waist * Waist)', data=wcat).fit()
 
-#Y is log(AT)and X=Waist
+# Y is log(AT) and X=Waist
 model4.summary()
 
-#R-Squared=0.779<0.85 there is scope of improvement
-#p=0.0000<0.05 hence acceptable
-#Bita-0=7.8241
-#Bita-1=0.2239
+# R-Squared=0.779 < 0.85, there is scope for improvement
+# p-value=0.0000 < 0.05, hence acceptable
 
-
-pred4=model4.predict(pd.DataFrame(wcat.Waist))
+pred4 = model4.predict(pd.DataFrame(wcat.Waist))
 pred4
 
-pred4_at=np.exp(pred4)
+pred4_at = np.exp(pred4)
 pred4_at
 #############################################
-#Regression line
-plt.scatter(wcat.Waist,np.log(wcat.AT))
-plt.plot(wcat.Waist,pred4,'r')
-plt.legend(['Predicted Line','Observed data_model4'])
+# Regression line
+plt.scatter(wcat.Waist, np.log(wcat.AT))
+plt.plot(wcat.Waist, pred4, 'r')
+plt.legend(['Predicted Line', 'Observed data_model4'])
 plt.show()
 ##############################
-#Error Calculation
-res4=wcat.AT-pred4_at
+# Error Calculation
+res4 = wcat.AT - pred4_at
 
-res_sqr4=res4*res4
-mse4=np.mean(res_sqr4)
-rmse4=np.sqrt(mse4)
+res_sqr4 = res4 * res4
+mse4 = np.mean(res_sqr4)
+rmse4 = np.sqrt(mse4)
 rmse4
-#Best model
+
+# Best model
 # Collect metrics for each model
 metrics = pd.DataFrame({
     "Model": ["Model 1", "Model 2", "Model 3", "Model 4"],
@@ -227,92 +194,43 @@ metrics = pd.DataFrame({
     "RMSE": [rmse1, rmse2, rmse3, rmse4]
 })
 print(metrics)
+
 #######################################
-#Now we have to generalize the best model
+# Now we have to generalize the best model
 
 from sklearn.model_selection import train_test_split
 
-train,test=train_test_split(wcat,test_size=0.2)
-plt.scatter(train.Waist,np.log(train.AT))
+train, test = train_test_split(wcat, test_size=0.2)
+plt.scatter(train.Waist, np.log(train.AT))
+plt.scatter(test.Waist, np.log(test.AT))
 
-plt.scatter(test.Waist,np.log(test.AT))
-
-final_model=smf.ols('np.log(AT)~Waist+I(Waist*Waist)',data=wcat).fit()
-
-#here y is log(AT) and X=Waist
+final_model = smf.ols('np.log(AT) ~ Waist + I(Waist * Waist)', data=wcat).fit()
 
 final_model.summary()
-#R-squared:  0.779 there is scope of improvement
-#p=0.000<0.05 hence acceptable
 
-test_pred=final_model.predict(pd.DataFrame(test))
+# R-squared: 0.779, there is scope for improvement
+# p-value=0.000 < 0.05, hence acceptable
 
-test_pred_at=np.exp(test_pred)
+test_pred = final_model.predict(pd.DataFrame(test))
+test_pred_at = np.exp(test_pred)
 test_pred_at
 
-train_pred=final_model.predict(pd.DataFrame(train))
-
-train_pred_at=np.exp(train_pred)
+train_pred = final_model.predict(pd.DataFrame(train))
+train_pred_at = np.exp(train_pred)
 train_pred_at
 
-#Evalution of test model
-
-test_res=test.AT-test_pred_at
-test_sqr=test_res*test_res
-test_mse=np.mean(test_sqr)
-test_rmse=np.sqrt(test_mse)
+# Evaluation of test model
+test_res = test.AT - test_pred_at
+test_sqr = test_res * test_res
+test_mse = np.mean(test_sqr)
+test_rmse = np.sqrt(test_mse)
 test_rmse
-#21.535099566566036
+# RMSE for test data
 
 ##########################################
-train_res=train.AT-train_pred_at
-train_sqr=train_res*train_res
-train_mse=np.mean(train_sqr)
-train_rmse=np.sqrt(train_mse)
+train_res = train.AT - train_pred_at
+train_sqr = train_res * train_res
+train_mse = np.mean(train_sqr)
+train_rmse = np.sqrt(train_mse)
 train_rmse
-#34.42884550089754
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# RMSE for train data
